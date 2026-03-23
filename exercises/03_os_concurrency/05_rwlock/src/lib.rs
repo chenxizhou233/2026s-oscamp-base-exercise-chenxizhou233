@@ -63,7 +63,12 @@ impl<T> RwLock<T> {
     /// 4. Try compare_exchange(s, s + 1, AcqRel, Acquire); on success return RwLockReadGuard { lock: self }.
     pub fn read(&self) -> RwLockReadGuard<'_, T> {
         // TODO
-        todo!()
+        loop {
+            let st = self.state.load(Ordering::Acquire);
+            if st == WRITER_HOLDING && st == WRITER_WAITING {
+                core::hint::spin_loop();
+            }
+        }
     }
 
     /// Acquire the write lock. Blocks until no readers and no other writer.
